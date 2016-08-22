@@ -1,0 +1,27 @@
+# Example of building Phoenix/Elixir project on Solano CI
+
+environment:
+  'MIX_ENV': 'test'
+
+hooks:
+  pre_setup: |
+    set -e  # Exit on error
+    # Install specific version of Elixir
+    cd $TMPDIR 
+    wget https://github.com/elixir-lang/elixir/releases/download/v1.3.2/Precompiled.zip
+    unzip Precompiled.zip
+    rsync -av bin $HOME/
+    rsync -av lib $HOME/
+    cd $TDDIUM_REPO_ROOT
+    # Use configuration file with Solano CI specific environment variables
+    cp config/test-solano.exs config/test.exs
+    # Install/update dependencies
+    mix deps.update phoenix
+    mix deps.get
+    npm install
+    # Compile
+    mix compile
+  worker_setup: mix ecto.create && mix ecto.migrate
+
+tests:
+  - mix test
